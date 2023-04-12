@@ -191,7 +191,7 @@ void lcd1602_display(enum DisplayMode dispMode, Environment* information)
     if (lastDispMode != dispMode)
     {
         lcd1602_clear();
-        delay_ms(1000);
+        delay_ms(500);
     }
 
     lastDispMode = dispMode;
