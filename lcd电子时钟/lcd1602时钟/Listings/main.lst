@@ -1,0 +1,118 @@
+C51 COMPILER V9.60.7.0   MAIN                                                              04/12/2023 19:28:18 PAGE 1   
+
+
+C51 COMPILER V9.60.7.0, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN .\Objects\main.obj
+COMPILER INVOKED BY: D:\Keil_v5\C51\BIN\C51.EXE main.c OPTIMIZE(8,SPEED) BROWSE INCDIR(.\users\inc) DEBUG OBJECTEXTEND P
+                    -RINT(.\Listings\main.lst) TABS(2) OBJECT(.\Objects\main.obj)
+
+line level    source
+
+   1          #include <reg52.h>
+   2          #include "common.h"
+   3          
+   4          Environment gEnvironment;
+   5          uchar gDispMode = eDisplayMode_time_date;
+   6          
+   7          void init();
+   8          void run();
+   9          void timer0_init();
+  10          void key1_action();
+  11          void key2_action();
+  12          void key3_action();
+  13          
+  14          void main()
+  15          {
+  16   1          init();
+  17   1          while(1)
+  18   1          {
+  19   2              while(!TF0);
+  20   2              run();
+  21   2          }
+  22   1      }
+  23          
+  24          void init()
+  25          {
+  26   1          gEnvironment.year = 23;
+  27   1          gEnvironment.mon = 4;
+  28   1          gEnvironment.day = 10;
+  29   1          gEnvironment.hour = 22;
+  30   1          gEnvironment.min = 40;
+  31   1          gEnvironment.sec = 50;
+  32   1          gEnvironment.temperature[0] = 25,
+  33   1          gEnvironment.temperature[1] = 0,
+  34   1          gEnvironment.humidity[0] = 65,
+  35   1          gEnvironment.humidity[1] = 0,
+  36   1      
+  37   1          timer0_init();
+  38   1          ds1302_init();
+  39   1          lcd1602_init();
+  40   1      
+  41   1          key_register(0, key1_action);
+  42   1          key_register(1, key2_action);
+  43   1          key_register(2, key3_action);
+  44   1      }
+  45          
+  46          void run()
+  47          {
+  48   1          static uint ticketCount = 0;
+  49   1          key_run();
+  50   1          ds1302_read_time(&gEnvironment);
+  51   1          dht11_read_dat(&gEnvironment);
+  52   1          lcd1602_display(gDispMode, &gEnvironment);
+  53   1      
+  54   1          ticketCount++;
+C51 COMPILER V9.60.7.0   MAIN                                                              04/12/2023 19:28:18 PAGE 2   
+
+  55   1          if (ticketCount == 100)
+  56   1          {
+  57   2              ticketCount = 0;
+  58   2              LED_RUN = ~LED_RUN;
+  59   2          }
+  60   1      }
+  61          
+  62          void timer0_init()
+  63          {
+  64   1          TMOD = 0x01;
+  65   1          TH0 = (65536 - 5000) / 256;
+  66   1          TL0 = (65536 - 5000) % 256;
+  67   1          TF0 = 0;
+  68   1          TR0 = 1;
+  69   1          ET0 = 1;
+  70   1          EA = 1;
+  71   1      }
+  72          
+  73          void timer0() interrupt 1
+  74          {
+  75   1          TH0 = (65536 - 5000) / 256;
+  76   1          TL0 = (65536 - 5000) % 256;
+  77   1      }
+  78          
+  79          void key1_action()
+  80          {
+  81   1      }
+  82          
+  83          void key2_action()
+  84          {
+  85   1      }
+  86          
+  87          void key3_action()
+  88          {
+  89   1          gDispMode++;
+  90   1          if (gDispMode >= eDisplayMode_max) 
+  91   1              gDispMode = eDisplayMode_time_date;
+  92   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    175    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     13    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

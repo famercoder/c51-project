@@ -1,0 +1,110 @@
+C51 COMPILER V9.60.7.0   DHT11                                                             04/12/2023 19:28:18 PAGE 1   
+
+
+C51 COMPILER V9.60.7.0, COMPILATION OF MODULE DHT11
+OBJECT MODULE PLACED IN .\Objects\dht11.obj
+COMPILER INVOKED BY: D:\Keil_v5\C51\BIN\C51.EXE users\src\dht11.c OPTIMIZE(8,SPEED) BROWSE INCDIR(.\users\inc) DEBUG OBJ
+                    -ECTEXTEND PRINT(.\Listings\dht11.lst) TABS(2) OBJECT(.\Objects\dht11.obj)
+
+line level    source
+
+   1          #include "common.h"
+   2          
+   3          bit dht11_init(void)
+   4          {
+   5   1          static uchar delayCount = 0;
+   6   1          DHT11_DAT = 0;
+   7   1          //delay_ms(20);
+   8   1          delayCount++;
+   9   1      
+  10   1          if (delayCount <= 4) 
+  11   1              return (bit)0;
+  12   1      
+  13   1          delayCount = 0;
+  14   1          DHT11_DAT = 1;
+  15   1          delay_us(3);
+  16   1      
+  17   1          if(DHT11_DAT == 0)
+  18   1          {
+  19   2              while(!DHT11_DAT);
+  20   2              while(DHT11_DAT);
+  21   2              return (bit)1;
+  22   2          }
+  23   1      
+  24   1          return (bit)0;
+  25   1      }
+  26          
+  27          bit dht11_read_bit(void)
+  28          {
+  29   1          while(!DHT11_DAT);
+  30   1          delay_us(5);
+  31   1          if (DHT11_DAT)
+  32   1          {
+  33   2              while(DHT11_DAT);
+  34   2              return (bit)1;
+  35   2          }
+  36   1          else
+  37   1              return (bit)0;
+  38   1      }
+  39          
+  40          uchar dht11_read_byte(void)
+  41          {
+  42   1          uchar dat = 0x00;
+  43   1          uchar i = 0;
+  44   1      
+  45   1          for (i = 0; i < 8; i++)
+  46   1          {
+  47   2              dat <<= 1;
+  48   2              dat = dat | dht11_read_bit();
+  49   2          }
+  50   1      
+  51   1          return dat;
+  52   1      }
+  53          
+  54          void dht11_read_dat(Environment* information)
+C51 COMPILER V9.60.7.0   DHT11                                                             04/12/2023 19:28:18 PAGE 2   
+
+  55          {
+  56   1          uchar i = 0;
+  57   1          uchar check_sum, check;
+  58   1          uchar dht11_buf[4] = {0};
+  59   1      
+  60   1          if (dht11_init())
+  61   1          {
+  62   2              dht11_buf[0] = dht11_read_byte();
+  63   2              dht11_buf[1] = dht11_read_byte();
+  64   2              dht11_buf[2] = dht11_read_byte();
+  65   2              dht11_buf[4] = dht11_read_byte();
+  66   2              check = dht11_read_byte();
+  67   2              check_sum = dht11_buf[0] + dht11_buf[1] + dht11_buf[2] + dht11_buf[3];
+  68   2      
+  69   2              if (check_sum == check)
+  70   2              {
+  71   3                  information->humidity[0] = dht11_buf[0];
+  72   3                  information->humidity[1] = dht11_buf[1];
+  73   3                  information->temperature[0] = dht11_buf[2];
+  74   3                  information->temperature[1] = dht11_buf[3];
+  75   3              }
+  76   2              else
+  77   2              {
+  78   3                  information->humidity[0] = 89;
+  79   3                  information->humidity[1] = 98;
+  80   3                  information->temperature[0] = 95;
+  81   3                  information->temperature[1] = 59;
+  82   3              }
+  83   2          }
+  84   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    221    ----
+   CONSTANT SIZE    =      4    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =      1      10
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

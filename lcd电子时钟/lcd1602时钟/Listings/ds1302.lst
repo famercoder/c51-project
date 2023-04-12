@@ -1,0 +1,154 @@
+C51 COMPILER V9.60.7.0   DS1302                                                            04/12/2023 19:28:18 PAGE 1   
+
+
+C51 COMPILER V9.60.7.0, COMPILATION OF MODULE DS1302
+OBJECT MODULE PLACED IN .\Objects\ds1302.obj
+COMPILER INVOKED BY: D:\Keil_v5\C51\BIN\C51.EXE users\src\ds1302.c OPTIMIZE(8,SPEED) BROWSE INCDIR(.\users\inc) DEBUG OB
+                    -JECTEXTEND PRINT(.\Listings\ds1302.lst) TABS(2) OBJECT(.\Objects\ds1302.obj)
+
+line level    source
+
+   1          #include "common.h"
+   2          
+   3          void ds1302_init()
+   4          {
+   5   1          DS1302_CE = 0;
+   6   1          DS1302_SCLK = 0;
+   7   1          DS1302_IO = 0;
+   8   1      }
+   9          
+  10          void ds1302_write_bytes(uchar addr, uchar write_data)
+  11          {
+  12   1          uchar i = 0;
+  13   1          DS1302_CE = 0;
+  14   1          _nop_();
+  15   1          DS1302_CE = 1;
+  16   1          _nop_();
+  17   1          DS1302_SCLK = 0;
+  18   1          _nop_();
+  19   1          DS1302_IO = 0;
+  20   1          _nop_();
+  21   1          
+  22   1          for(i = 0; i < 8; i++)
+  23   1          {
+  24   2              DS1302_IO = addr & (0x01 << i);
+  25   2              DS1302_SCLK = 1;
+  26   2              _nop_();
+  27   2              DS1302_SCLK = 0;
+  28   2              _nop_();
+  29   2          }
+  30   1      
+  31   1          for (i = 0; i < 8; i++)
+  32   1          {
+  33   2              DS1302_IO = write_data & (0x01 << i);
+  34   2              DS1302_SCLK = 1;
+  35   2              _nop_();
+  36   2              DS1302_SCLK = 0;
+  37   2              _nop_();
+  38   2          }
+  39   1      
+  40   1          DS1302_CE = 0;
+  41   1          _nop_();
+  42   1      }
+  43          
+  44          uchar ds1302_read_bytes(uchar addr)
+  45          {
+  46   1          uchar readData = 0x00;
+  47   1          uchar i = 0;
+  48   1          addr = addr | 0x01; //转换成读指令
+  49   1          DS1302_CE = 0;
+  50   1          _nop_();
+  51   1          DS1302_CE = 1;
+  52   1          _nop_();
+  53   1          DS1302_SCLK = 0;
+  54   1          _nop_();
+C51 COMPILER V9.60.7.0   DS1302                                                            04/12/2023 19:28:18 PAGE 2   
+
+  55   1          DS1302_IO = 0;
+  56   1          _nop_();
+  57   1      
+  58   1          for (i = 0; i < 8; i++)
+  59   1          {
+  60   2              DS1302_IO = addr & (0x01 << i);
+  61   2              DS1302_SCLK = 0;
+  62   2              _nop_();
+  63   2              DS1302_SCLK = 1;
+  64   2              _nop_();
+  65   2          }
+  66   1      
+  67   1          for (i = 0; i < 8; i++)
+  68   1          {
+  69   2              DS1302_SCLK = 1;
+  70   2              _nop_();
+  71   2              DS1302_SCLK = 0;
+  72   2              _nop_();
+  73   2      
+  74   2              if (DS1302_IO) {readData = readData | (0x01 << i);}
+  75   2          }
+  76   1      
+  77   1          DS1302_CE = 0;
+  78   1           _nop_();
+  79   1          DS1302_IO = 0;
+  80   1           _nop_();
+  81   1          return readData;
+  82   1      }
+  83          
+  84          void    ds1302_set_time(enum DS1302_SetMode mode, Environment* information)
+  85          {
+  86   1          ds1302_write_bytes(DS1302_WP, 0x00);
+  87   1          switch (mode)
+  88   1          {
+  89   2              case eDs1302_set_all:
+  90   2              {
+  91   3                  ds1302_write_bytes(DS1302_YEAR, dec_to_bcd(information->year));
+  92   3                  ds1302_write_bytes(DS1302_MONTH, dec_to_bcd(information->mon));
+  93   3                  ds1302_write_bytes(DS1302_DATE, dec_to_bcd(information->day));
+  94   3                  ds1302_write_bytes(DS1302_HOUR, dec_to_bcd(information->hour));
+  95   3                  ds1302_write_bytes(DS1302_MINUTE, dec_to_bcd(information->min));
+  96   3                  ds1302_write_bytes(DS1302_SECOND, dec_to_bcd(information->sec));
+  97   3                  break;
+  98   3              }
+  99   2              case eDs1302_Set_ymd:
+ 100   2              {
+ 101   3                  ds1302_write_bytes(DS1302_YEAR, dec_to_bcd(information->year));
+ 102   3                  ds1302_write_bytes(DS1302_MONTH, dec_to_bcd(information->mon));
+ 103   3                  ds1302_write_bytes(DS1302_DATE, dec_to_bcd(information->day));
+ 104   3                  break;
+ 105   3              }
+ 106   2              case eDs1302_Set_hms:
+ 107   2              {
+ 108   3                  ds1302_write_bytes(DS1302_HOUR, dec_to_bcd(information->hour));
+ 109   3                  ds1302_write_bytes(DS1302_MINUTE, dec_to_bcd(information->min));
+ 110   3                  ds1302_write_bytes(DS1302_SECOND, dec_to_bcd(information->sec));
+ 111   3                  break;
+ 112   3              }
+ 113   2          }
+ 114   1      
+ 115   1          ds1302_write_bytes(DS1302_WP, 0x80);
+ 116   1      }
+C51 COMPILER V9.60.7.0   DS1302                                                            04/12/2023 19:28:18 PAGE 3   
+
+ 117          
+ 118          void    ds1302_read_time(Environment* information)
+ 119          {
+ 120   1          information->year = bcd_to_dec(ds1302_read_bytes(DS1302_YEAR));
+ 121   1          information->mon = bcd_to_dec(ds1302_read_bytes(DS1302_MONTH));
+ 122   1          information->day = bcd_to_dec(ds1302_read_bytes(DS1302_DATE));
+ 123   1          information->hour = bcd_to_dec(ds1302_read_bytes(DS1302_HOUR));
+ 124   1          information->min = bcd_to_dec(ds1302_read_bytes(DS1302_MINUTE));
+ 125   1          information->sec = bcd_to_dec(ds1302_read_bytes(DS1302_SECOND));
+ 126   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    565    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----       6
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

@@ -1,0 +1,9 @@
+".\Objects\STARTUP.obj",
+".\Objects\main.obj",
+".\Objects\dht11.obj",
+".\Objects\ds1302.obj",
+".\Objects\key.obj",
+".\Objects\other.obj",
+".\Objects\lcd1602.obj" 
+TO ".\Objects\lcd1602_timer" 
+PRINT(".\Listings\lcd1602_timer.m51")

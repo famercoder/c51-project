@@ -1,0 +1,39 @@
+{
+    "configurations": [
+        {
+            "name": "Target 1",
+            "includePath": [
+                "f:\\stm32\\c51\\lcd电子时钟\\lcd1602时钟\\users\\inc",
+                "D:\\Keil_v5\\C51\\INC",
+                "f:\\stm32\\c51\\lcd电子时钟\\lcd1602时钟",
+                "f:\\stm32\\c51\\lcd电子时钟\\lcd1602时钟\\users\\src"
+            ],
+            "defines": [
+                "__C51__",
+                "__VSCODE_C51__",
+                "reentrant=",
+                "compact=",
+                "small=",
+                "large=",
+                "data=",
+                "idata=",
+                "pdata=",
+                "bdata=",
+                "xdata=",
+                "code=",
+                "bit=char",
+                "sbit=char",
+                "sfr=char",
+                "sfr16=int",
+                "sfr32=int",
+                "interrupt=",
+                "using=",
+                "_at_=",
+                "_priority_=",
+                "_task_="
+            ],
+            "intelliSenseMode": "${default}"
+        }
+    ],
+    "version": 4
+}
