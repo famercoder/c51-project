@@ -23,8 +23,8 @@ typedef struct {
 }Environment;
 
 enum DisplayMode {
-    eDisplayMode_time_date,
-    eDisplayMode_tphumi,
+    eDisplayMode_dateTime,
+    eDisplayMode_tpHumi,
     eDisplayMode_max,
 };
 
@@ -110,5 +110,8 @@ static void lcd1602_display_date(uchar row, uchar col, Environment* information)
 static void lcd1602_display_temperature(uchar row, uchar col, Environment* information);
 static void lcd1602_display_humidity(uchar row, uchar col, Environment* information);
 static void lcd1602_display(enum DisplayMode dispMode, Environment* information);
+static void lcd1602_open_gb(uchar row, uchar col);
+static void lcd1602_close_gb();
+static void lcd1602_display_char(uchar row, uchar col,uchar dispChar);
 
 #endif

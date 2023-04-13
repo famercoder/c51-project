@@ -81,7 +81,7 @@ uchar ds1302_read_bytes(uchar addr)
     return readData;
 }
 
-void    ds1302_set_time(enum DS1302_SetMode mode, Environment* information)
+void ds1302_set_time(enum DS1302_SetMode mode, Environment* information)
 {
     ds1302_write_bytes(DS1302_WP, 0x00);
     switch (mode)
@@ -115,7 +115,7 @@ void    ds1302_set_time(enum DS1302_SetMode mode, Environment* information)
     ds1302_write_bytes(DS1302_WP, 0x80);
 }
 
-void    ds1302_read_time(Environment* information)
+void ds1302_read_time(Environment* information)
 {
     information->year = bcd_to_dec(ds1302_read_bytes(DS1302_YEAR));
     information->mon = bcd_to_dec(ds1302_read_bytes(DS1302_MONTH));

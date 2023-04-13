@@ -1,5 +1,7 @@
 #include "common.h"
 
+uchar gOpenGB = 0;
+
 void lcd1602_init()
 {
     LCD1602_RW = 0;
@@ -14,6 +16,7 @@ void lcd1602_init()
 
     lcd1602_message("Welcome to --->\n  SunFounder");
     delay_ms(3000);
+
     lcd1602_clear(); 
 }
 
@@ -113,7 +116,7 @@ void lcd1602_display_time(uchar row, uchar col, Environment* information)
 
 void lcd1602_display_date(uchar row, uchar col, Environment* information)
 {
-    char message[] = "Date:20xx-xx-xx";
+    char message[] = "Date:xx/xx/xx";
     uchar i = 0, pos = 0;
     uchar displayValues[6] = {0};
 
@@ -187,7 +190,11 @@ void lcd1602_display_humidity(uchar row, uchar col, Environment* information)
 
 void lcd1602_display(enum DisplayMode dispMode, Environment* information)
 {
-    static enum DisplayMode lastDispMode = eDisplayMode_time_date;
+    static enum DisplayMode lastDispMode = eDisplayMode_dateTime;
+    
+    if (gOpenGB)
+        return;
+
     if (lastDispMode != dispMode)
     {
         lcd1602_clear();
@@ -197,13 +204,13 @@ void lcd1602_display(enum DisplayMode dispMode, Environment* information)
     lastDispMode = dispMode;
     switch (dispMode)
     {
-        case eDisplayMode_time_date:
+        case eDisplayMode_dateTime:
         {
-            lcd1602_display_time(0, 0, information);
-            lcd1602_display_date(1, 0, information);
+            lcd1602_display_time(1, 0, information);
+            lcd1602_display_date(0, 0, information);
             break;
         }
-        case eDisplayMode_tphumi:
+        case eDisplayMode_tpHumi:
         {
             lcd1602_display_temperature(0, 0, information);
             lcd1602_display_humidity(1, 0, information);
@@ -216,4 +223,27 @@ void lcd1602_display(enum DisplayMode dispMode, Environment* information)
             break;
         }
     }
+}
+
+void lcd1602_open_gb(uchar row, uchar col)
+{
+    lcd1602_setcursor(row, col);
+    lcd1602_write4bits(0x0f, LCD1602_WRITE_COMMAND); //开启光标
+    gOpenGB = 1;
+}
+
+void lcd1602_close_gb()
+{
+    lcd1602_write4bits(0x0c, LCD1602_WRITE_COMMAND); //关闭光标
+    gOpenGB = 0;
+}
+
+void lcd1602_display_char(uchar row, uchar col, uchar dispChar)
+{
+    if (row) _nop_();
+    if (col) _nop_();
+    lcd1602_write4bits(dispChar+'0', LCD1602_WRITE_DATA);
+    lcd1602_write4bits(0x0c, LCD1602_WRITE_COMMAND); //关闭光标
+    lcd1602_setcursor(row, col);
+    lcd1602_write4bits(0x0f, LCD1602_WRITE_COMMAND); //开启光标
 }
