@@ -28,6 +28,16 @@ enum DisplayMode {
     eDisplayMode_max,
 };
 
+enum SettingMode {
+    eSetting_year,
+    eSetting_mon,
+    eSetting_day,
+    eSetting_hour,
+    eSetting_min,
+    eSetting_sec,
+    eSetting_null,
+};
+
 enum DS1302_SetMode {
     eDs1302_Set_hms,
     eDs1302_Set_ymd,
@@ -73,45 +83,45 @@ sbit LCD1602_D7         = P0^7;
 
 ////////////////////////////////
 //ds1302
-static void    ds1302_init();
-static void    ds1302_write_bytes(uchar addr, uchar write_data);
-static uchar   ds1302_read_bytes(uchar addr);
-static void    ds1302_set_time(enum DS1302_SetMode mode, Environment* information);
-static void    ds1302_read_time(Environment* information);
+void    ds1302_init();
+void    ds1302_write_bytes(uchar addr, uchar write_data);
+uchar   ds1302_read_bytes(uchar addr);
+void    ds1302_set_time(enum DS1302_SetMode mode, Environment* information);
+void    ds1302_read_time(Environment* information);
 
 //key
-static void    key_register(uchar key_id, KeyActionFunc action);
-static void    key_action();
-static void    key_scan();
-static void    key_run();
+void    key_register(uchar key_id, KeyActionFunc action);
+void    key_action();
+void    key_scan();
+void    key_run();
 
 //other
-static uchar   bcd_to_dec(uchar source_data); //bcd -- dec
-static uchar   dec_to_bcd(uchar source_data); //dec -- bcd
-static void    delay_us(uint n);
-static void    delay_ms(uint c);
+uchar   bcd_to_dec(uchar source_data); //bcd -- dec
+uchar   dec_to_bcd(uchar source_data); //dec -- bcd
+void    delay_us(uint n);
+void    delay_ms(uint c);
 
 //dth11
-static bit     dht11_init(void);
-static bit     dht11_read_bit(void);
-static uchar   dht11_read_byte(void);
-static void    dht11_read_dat(Environment* information);
+bit     dht11_init(void);
+bit     dht11_read_bit(void);
+uchar   dht11_read_byte(void);
+void    dht11_read_dat(Environment* information);
 
 //lcd1602
-static void lcd1602_init();
-static void lcd1602_write4bits(uchar bits, bit mode);
-static void lcd1602_setcursor(uchar row, uchar col);
-static void lcd1602_message(char* message);
-static void lcd1602_clear();
-static void lcd1602_pulseenable();
-static bit  lcd1602_busy();
-static void lcd1602_display_time(uchar row, uchar col, Environment* information);
-static void lcd1602_display_date(uchar row, uchar col, Environment* information);
-static void lcd1602_display_temperature(uchar row, uchar col, Environment* information);
-static void lcd1602_display_humidity(uchar row, uchar col, Environment* information);
-static void lcd1602_display(enum DisplayMode dispMode, Environment* information);
-static void lcd1602_open_gb(uchar row, uchar col);
-static void lcd1602_close_gb();
-static void lcd1602_display_char(uchar row, uchar col,uchar dispChar);
+void lcd1602_init();
+void lcd1602_write4bits(uchar bits, bit mode);
+void lcd1602_setcursor(uchar row, uchar col);
+void lcd1602_message(char* message);
+void lcd1602_clear();
+void lcd1602_pulseenable();
+bit  lcd1602_busy();
+
+void lcd1602_display_time(uchar row, uchar col, Environment information);
+void lcd1602_display_date(uchar row, uchar col, Environment information);
+void lcd1602_display_temperature(uchar row, uchar col, Environment information);
+void lcd1602_display_humidity(uchar row, uchar col, Environment information);
+void lcd1602_display(enum DisplayMode dispMode, Environment information);
+void lcd1602_format_display(uchar row, uchar col, uchar displayValues[], char message[], uchar messageLen);
+void lcd1602_display_setting(Environment information, enum SettingMode settingMode);
 
 #endif

@@ -1,7 +1,5 @@
 #include "common.h"
 
-uchar gOpenGB = 0;
-
 void lcd1602_init()
 {
     LCD1602_RW = 0;
@@ -46,10 +44,8 @@ void lcd1602_message(char* message)
     char* p = message;
     while(*p != '\0')
     {
-        if (*p == '\n') 
-            lcd1602_write4bits(0xc0, LCD1602_WRITE_COMMAND);
-        else 
-            lcd1602_write4bits(*p, LCD1602_WRITE_DATA);
+        if (*p == '\n') lcd1602_write4bits(0xc0, LCD1602_WRITE_COMMAND);
+        else            lcd1602_write4bits(*p, LCD1602_WRITE_DATA);
         p++;
     }
 }
@@ -88,117 +84,95 @@ bit  lcd1602_busy()
     return result;
 }
 
-void lcd1602_display_time(uchar row, uchar col, Environment* information)
+void lcd1602_display_time(uchar row, uchar col, Environment information)
 {
-    char message[] = "Time:xx:xx:xx";
-    uchar i = 0, pos = 0;
     uchar displayValues[6] = {0};
+    displayValues[0] = information.hour / 10;
+    displayValues[1] = information.hour % 10;
+    displayValues[2] = information.min / 10;
+    displayValues[3] = information.min % 10;
+    displayValues[4] = information.sec / 10;
+    displayValues[5] = information.sec % 10;
 
-    displayValues[0] = information->hour / 10;
-    displayValues[1] = information->hour % 10;
-    displayValues[2] = information->min / 10;
-    displayValues[3] = information->min % 10;
-    displayValues[4] = information->sec / 10;
-    displayValues[5] = information->sec % 10;
-
-    for (i = 0; i < sizeof(message) / sizeof(char); i++)
+    if (information.hour == 255) 
     {
-        if (message[i] == 'x')
-        {
-            message[i] = displayValues[pos]+'0';
-            pos++;
-        }
+        lcd1602_format_display(row, col, displayValues, "Time:nn:xx:xx", 14);
+        return;
     }
 
-    lcd1602_setcursor(row, col);
-    lcd1602_message(message);
+    if (information.min == 255) 
+    {
+        lcd1602_format_display(row, col, displayValues, "Time:xx:nn:xx", 14);
+        return;
+    }
+
+    if (information.sec == 255) 
+    {
+        lcd1602_format_display(row, col, displayValues, "Time:xx:xx:nn", 14);
+        return;
+    }
+
+    lcd1602_format_display(row, col, displayValues, "Time:xx:xx:xx", 14);
 }
 
-void lcd1602_display_date(uchar row, uchar col, Environment* information)
+void lcd1602_display_date(uchar row, uchar col, Environment information)
 {
-    char message[] = "Date:xx/xx/xx";
-    uchar i = 0, pos = 0;
     uchar displayValues[6] = {0};
+    displayValues[0] = information.year / 10;
+    displayValues[1] = information.year % 10;
+    displayValues[2] = information.mon / 10;
+    displayValues[3] = information.mon % 10;
+    displayValues[4] = information.day / 10;
+    displayValues[5] = information.day % 10;
 
-    displayValues[0] = information->year / 10;
-    displayValues[1] = information->year % 10;
-    displayValues[2] = information->mon / 10;
-    displayValues[3] = information->mon % 10;
-    displayValues[4] = information->day / 10;
-    displayValues[5] = information->day % 10;
-
-    for (i = 0; i < sizeof(message) / sizeof(char); i++)
+    if (information.year == 255)
     {
-        if (message[i] == 'x')
-        {
-            message[i] = displayValues[pos]+'0';
-            pos++;
-        }
+        lcd1602_format_display(row, col, displayValues, "Date:nn/xx/xx", 14); 
+        return;
     }
 
-    lcd1602_setcursor(row, col);
-    lcd1602_message(message);  
+    if (information.mon == 255)
+    {
+        lcd1602_format_display(row, col, displayValues, "Date:xx/nn/xx", 14); 
+        return;
+    }
+
+    if (information.day == 255)
+    {
+        lcd1602_format_display(row, col, displayValues, "Date:xx/xx/nn", 14); 
+        return;
+    }
+
+    lcd1602_format_display(row, col, displayValues, "Date:xx/xx/xx", 14); 
 }
 
-void lcd1602_display_temperature(uchar row, uchar col, Environment* information)
+void lcd1602_display_temperature(uchar row, uchar col, Environment information)
 {
-    char message[] = "Temp:xx.xx C";
-    uchar i = 0, pos = 0;
     uchar displayValues[4] = {0};
-
-    displayValues[0] = information->temperature[0] / 10;
-    displayValues[1] = information->temperature[0] % 10;
-    displayValues[2] = information->temperature[1] / 10;
-    displayValues[3] = information->temperature[1] % 10;
-
-    for (i = 0; i < sizeof(message) / sizeof(char); i++)
-    {
-        if (message[i] == 'x')
-        {
-            message[i] = displayValues[pos]+'0';
-            pos++;
-        }
-    }
-
-    lcd1602_setcursor(row, col);
-    lcd1602_message(message);  
+    displayValues[0] = information.temperature[0] / 10;
+    displayValues[1] = information.temperature[0] % 10;
+    displayValues[2] = information.temperature[1] / 10;
+    displayValues[3] = information.temperature[1] % 10;
+    lcd1602_format_display(row, col, displayValues, "Temp:xx.xx C", 13); 
 }
 
-void lcd1602_display_humidity(uchar row, uchar col, Environment* information)
+void lcd1602_display_humidity(uchar row, uchar col, Environment information)
 {
-    char message[] = "Humi:xx.xx %";
-    uchar i = 0, pos = 0;
     uchar displayValues[4] = {0};
-
-    displayValues[0] = information->humidity[0] / 10;
-    displayValues[1] = information->humidity[0] % 10;
-    displayValues[2] = information->humidity[1] / 10;
-    displayValues[3] = information->humidity[1] % 10;
-
-    for (i = 0; i < sizeof(message) / sizeof(char); i++)
-    {
-        if (message[i] == 'x')
-        {
-            message[i] = displayValues[pos]+'0';
-            pos++;
-        }
-    }
-
-    lcd1602_setcursor(row, col);
-    lcd1602_message(message);  
+    displayValues[0] = information.humidity[0] / 10;
+    displayValues[1] = information.humidity[0] % 10;
+    displayValues[2] = information.humidity[1] / 10;
+    displayValues[3] = information.humidity[1] % 10;
+    lcd1602_format_display(row, col, displayValues, "Humi:xx.xx %", 13);
 }
 
-void lcd1602_display(enum DisplayMode dispMode, Environment* information)
+void lcd1602_display(enum DisplayMode dispMode, Environment information)
 {
     static enum DisplayMode lastDispMode = eDisplayMode_dateTime;
-    
-    if (gOpenGB)
-        return;
-
     if (lastDispMode != dispMode)
     {
         lcd1602_clear();
-        delay_ms(500);
+        delay_ms(300);
     }
 
     lastDispMode = dispMode;
@@ -206,8 +180,8 @@ void lcd1602_display(enum DisplayMode dispMode, Environment* information)
     {
         case eDisplayMode_dateTime:
         {
-            lcd1602_display_time(1, 0, information);
             lcd1602_display_date(0, 0, information);
+            lcd1602_display_time(1, 0, information);
             break;
         }
         case eDisplayMode_tpHumi:
@@ -225,25 +199,47 @@ void lcd1602_display(enum DisplayMode dispMode, Environment* information)
     }
 }
 
-void lcd1602_open_gb(uchar row, uchar col)
+void lcd1602_display_setting(Environment information, enum SettingMode settingMode)
 {
-    lcd1602_setcursor(row, col);
-    lcd1602_write4bits(0x0f, LCD1602_WRITE_COMMAND); //开启光标
-    gOpenGB = 1;
+    switch (settingMode)
+    {
+        case eSetting_year: information.year = 255; break;
+        case eSetting_mon:  information.mon = 255;  break;
+        case eSetting_day:  information.day = 255;  break;  
+        case eSetting_hour: information.hour = 255; break;   
+        case eSetting_min:  information.min = 255;  break;
+        case eSetting_sec:  information.sec = 255;  break;
+    }
+
+    if (settingMode == eSetting_year || settingMode == eSetting_mon || settingMode == eSetting_day)
+    {
+        lcd1602_display_date(0, 0, information);
+        return;
+    }
+
+    if (settingMode == eSetting_hour || settingMode == eSetting_min || settingMode == eSetting_sec)
+    {
+        lcd1602_display_time(1, 0, information);
+        return;
+    }     
 }
 
-void lcd1602_close_gb()
+void lcd1602_format_display(uchar row, uchar col, uchar displayValues[], char message[], uchar messageLen)
 {
-    lcd1602_write4bits(0x0c, LCD1602_WRITE_COMMAND); //关闭光标
-    gOpenGB = 0;
-}
+    uchar i = 0, pos = 0;
+    for (i = 0; i < messageLen; i++)
+    {
+        if (message[i] == 'x')
+        {
+            message[i] = displayValues[pos]+'0';
+            pos++;
+        }
+        else if (message[i] == 'n')
+        {
+            message[i] = ' ';
+        }
+    }
 
-void lcd1602_display_char(uchar row, uchar col, uchar dispChar)
-{
-    if (row) _nop_();
-    if (col) _nop_();
-    lcd1602_write4bits(dispChar+'0', LCD1602_WRITE_DATA);
-    lcd1602_write4bits(0x0c, LCD1602_WRITE_COMMAND); //关闭光标
     lcd1602_setcursor(row, col);
-    lcd1602_write4bits(0x0f, LCD1602_WRITE_COMMAND); //开启光标
+    lcd1602_message(message);     
 }

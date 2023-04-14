@@ -1,4 +1,4 @@
-C51 COMPILER V9.60.7.0   DS1302                                                            04/13/2023 21:04:50 PAGE 1   
+C51 COMPILER V9.60.7.0   DS1302                                                            04/14/2023 18:39:05 PAGE 1   
 
 
 C51 COMPILER V9.60.7.0, COMPILATION OF MODULE DS1302
@@ -62,7 +62,7 @@ line level    source
   52   1          _nop_();
   53   1          DS1302_SCLK = 0;
   54   1          _nop_();
-C51 COMPILER V9.60.7.0   DS1302                                                            04/13/2023 21:04:50 PAGE 2   
+C51 COMPILER V9.60.7.0   DS1302                                                            04/14/2023 18:39:05 PAGE 2   
 
   55   1          DS1302_IO = 0;
   56   1          _nop_();
@@ -126,7 +126,7 @@ line level    source
  114   1      
  115   1          ds1302_write_bytes(DS1302_WP, 0x80);
  116   1      }
-C51 COMPILER V9.60.7.0   DS1302                                                            04/13/2023 21:04:50 PAGE 3   
+C51 COMPILER V9.60.7.0   DS1302                                                            04/14/2023 18:39:05 PAGE 3   
 
  117          
  118          void ds1302_read_time(Environment* information)

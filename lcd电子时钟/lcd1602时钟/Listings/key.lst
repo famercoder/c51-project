@@ -1,4 +1,4 @@
-C51 COMPILER V9.60.7.0   KEY                                                               04/13/2023 21:04:50 PAGE 1   
+C51 COMPILER V9.60.7.0   KEY                                                               04/14/2023 18:39:05 PAGE 1   
 
 
 C51 COMPILER V9.60.7.0, COMPILATION OF MODULE KEY
@@ -62,7 +62,7 @@ line level    source
   52   2      
   53   2              keybuff[i] = (keybuff[i] << 1) | keyValue;
   54   2              if (keybuff[i] == 0x00)     gKeyInfos[i].status = 0;
-C51 COMPILER V9.60.7.0   KEY                                                               04/13/2023 21:04:50 PAGE 2   
+C51 COMPILER V9.60.7.0   KEY                                                               04/14/2023 18:39:05 PAGE 2   
 
   55   2              else if(keybuff[i] == 0xff) gKeyInfos[i].status = 1;
   56   2          }

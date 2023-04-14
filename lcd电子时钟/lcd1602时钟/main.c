@@ -3,19 +3,22 @@
 
 Environment gEnvironment;
 uchar gDispMode = eDisplayMode_dateTime;
-uchar gSettingTime = 0;
-uchar gSettingDate = 0;
+bit gSettingTime = 0;
+bit gSettingDate = 0;
 uchar gLcd1602CurSettingRow = 0;
-char  gLcd1602CurSettingColPos = -1;
-uchar gLcd1602SettingCols[] = {5,6, 8,9, 11,12};
-uchar gKey2SettingValue = 0;
+uchar gLcd1602CurSettingCol = 0;
+uchar gLedRunTicket = 0;
+uchar gLcd1602SettingTicket = 0;
+uchar gSettingMode = eSetting_null;
 
 void init();
 void run();
+void led_run();
 void timer0_init();
 void key1_action();
 void key2_action();
 void key3_action();
+void check_setting_mode();
 
 void main()
 {
@@ -49,22 +52,41 @@ void init()
     key_register(2, key3_action);
 }
 
+void led_run()
+{
+    gLedRunTicket++;
+    if (gLedRunTicket == 100) //500ms
+    {
+        gLedRunTicket = 0;
+       // LED_RUN = ~LED_RUN;
+    }
+}
+
 void run()
 {
-    static uint ticketCount = 0;
     key_run();
+    led_run();
+    check_setting_mode();
 
-    if (gLcd1602CurSettingColPos == -1)
-        ds1302_read_time(&gEnvironment); 
-
-    dht11_read_dat(&gEnvironment);
-    lcd1602_display(gDispMode, &gEnvironment);
-
-    ticketCount++;
-    if (ticketCount == 100)
+    if (gSettingMode == eSetting_null)
     {
-        ticketCount = 0;
-        //LED_RUN = ~LED_RUN;
+        gLcd1602SettingTicket = 0;
+        ds1302_read_time(&gEnvironment);
+        dht11_read_dat(&gEnvironment);
+        lcd1602_display(gDispMode, gEnvironment);
+    }
+    else
+    {
+        gLcd1602SettingTicket++;
+        if (gLcd1602SettingTicket == 100)
+        {
+            gLcd1602SettingTicket = 0;
+            lcd1602_display_setting(gEnvironment, gSettingMode);
+        }
+        else
+        {
+            lcd1602_display(gDispMode, gEnvironment);
+        }
     }
 }
 
@@ -87,65 +109,70 @@ void timer0() interrupt 1
 
 void key1_action()
 {
-    if (gDispMode == eDisplayMode_dateTime) 
+    if (gDispMode != eDisplayMode_dateTime) 
+        return;
+    
+    gLcd1602CurSettingCol++;
+    if (gLcd1602CurSettingCol > 3)
     {
-        gLcd1602CurSettingColPos++;
-        if (gLcd1602CurSettingColPos >= sizeof(gLcd1602SettingCols) / sizeof(uchar))
-        {
-            gLcd1602CurSettingColPos = 0;
-            gLcd1602CurSettingRow++;
+        gLcd1602CurSettingCol = 1;
+        gLcd1602CurSettingRow++;
 
-            if (gLcd1602CurSettingRow > 1)
-                gLcd1602CurSettingRow = 0;
-        }
-
-        lcd1602_open_gb(gLcd1602CurSettingRow, gLcd1602SettingCols[gLcd1602CurSettingColPos]);
+        if (gLcd1602CurSettingRow > 1)
+            gLcd1602CurSettingRow = 0;
     }
 }
 
 void key2_action()
 {
-    if (gLcd1602CurSettingRow == 0) 
+    LED_RUN = ~LED_RUN;
+    switch (gLcd1602CurSettingCol)
     {
-        switch (gLcd1602CurSettingColPos)
-        {
-            case 0:
+        case 1:
+        {   
+            if (gLcd1602CurSettingRow == 0)    
             {
-                gKey2SettingValue++;
-                if (gKey2SettingValue >= 10)
-                    gKey2SettingValue = 0;
-                
-                lcd1602_display_char(0, 5, gKey2SettingValue);
-                LED_RUN = ~LED_RUN;
-                break;
+                gEnvironment.year++;
+                if (gEnvironment.year > 99) gEnvironment.year = 0;
             }
-            case 1:
-            {  
-                break;
-            }
-            case 2:
+            else if (gLcd1602CurSettingRow == 1)
             {
-                break;
+                gEnvironment.hour++;
+                if (gEnvironment.hour > 23) gEnvironment.hour = 0;
             }
+
+            break;
         }
-    }
-    else if (gLcd1602CurSettingRow == 1)
-    {
-        switch (gLcd1602CurSettingColPos)
-        {
-            case 0:
+        case 2:
+        {  
+            if (gLcd1602CurSettingRow == 0)    
             {
-                break;
+                gEnvironment.mon++;
+                if (gEnvironment.mon > 12) gEnvironment.mon = 1;
             }
-            case 1:
+            else if (gLcd1602CurSettingRow == 1)
             {
-                break;
+                gEnvironment.min++;
+                if (gEnvironment.min > 59) gEnvironment.min = 0;
             }
-            case 2:
-            {
-                break;
-            }
+
+            break;
         }
+        case 3:
+        {
+            if (gLcd1602CurSettingRow == 0)    
+            {
+                gEnvironment.day++;
+                if (gEnvironment.day > 31) gEnvironment.day = 1;
+            }
+            else if (gLcd1602CurSettingRow == 1)
+            {
+                gEnvironment.sec++;
+                if (gEnvironment.sec > 59) gEnvironment.sec = 0;
+            }
+
+            break;
+        }      
     }
 }
 
@@ -171,6 +198,52 @@ void key3_action()
     }
 
     gLcd1602CurSettingRow = 0;
-    gLcd1602CurSettingColPos = -1;
-    lcd1602_close_gb();
+    gLcd1602CurSettingCol = 0;
+}
+
+void check_setting_mode()
+{
+    if (gLcd1602CurSettingRow == 0) 
+    {
+        if (gLcd1602CurSettingCol == 1)
+        {
+            gSettingMode = eSetting_year;
+            return;
+        }
+
+        if (gLcd1602CurSettingCol == 2)
+        {
+            gSettingMode = eSetting_mon;
+            return;
+        }
+
+        if (gLcd1602CurSettingCol == 3)
+        {
+            gSettingMode = eSetting_day;
+            return;
+        }
+    }
+
+    if (gLcd1602CurSettingRow == 1) 
+    {
+        if (gLcd1602CurSettingCol == 1)
+        {
+            gSettingMode = eSetting_hour;
+            return;
+        }
+
+        if (gLcd1602CurSettingCol == 2)
+        {
+            gSettingMode = eSetting_min;
+            return;
+        }
+
+        if (gLcd1602CurSettingCol == 3)
+        {
+            gSettingMode = eSetting_sec;
+            return;
+        }
+    } 
+
+    gSettingMode = eSetting_null;
 }

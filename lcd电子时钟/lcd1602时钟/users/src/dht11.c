@@ -1,16 +1,17 @@
 #include "common.h"
 
+uchar gDelayCount = 0;
+
 bit dht11_init(void)
 {
-    static uchar delayCount = 0;
     DHT11_DAT = 0;
     //delay_ms(20);
-    delayCount++;
+    gDelayCount++;
 
-    if (delayCount <= 4) 
+    if (gDelayCount <= 4) 
         return (bit)0;
 
-    delayCount = 0;
+    gDelayCount = 0;
     DHT11_DAT = 1;
     delay_us(3);
 
