@@ -56,6 +56,8 @@ enum DS1302_SetMode {
 #define LCD1602_WRITE_COMMAND 0
 #define LCD1602_WRITE_DATA    1
 
+#define SETTING_DAT 255
+
 /////////////////////////////////
 //DHT11
 sbit DHT11_DAT      = P2^0;

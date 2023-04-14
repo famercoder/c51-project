@@ -58,7 +58,7 @@ void led_run()
     if (gLedRunTicket == 100) //500ms
     {
         gLedRunTicket = 0;
-       // LED_RUN = ~LED_RUN;
+        LED_RUN = ~LED_RUN;
     }
 }
 
@@ -78,15 +78,12 @@ void run()
     else
     {
         gLcd1602SettingTicket++;
-        if (gLcd1602SettingTicket == 100)
-        {
-            gLcd1602SettingTicket = 0;
+        if (gLcd1602SettingTicket < 50) 
             lcd1602_display_setting(gEnvironment, gSettingMode);
-        }
-        else
-        {
+        else if (gLcd1602SettingTicket >= 50 && gLcd1602SettingTicket < 100) 
             lcd1602_display(gDispMode, gEnvironment);
-        }
+        else
+            gLcd1602SettingTicket = 0;
     }
 }
 
@@ -125,20 +122,25 @@ void key1_action()
 
 void key2_action()
 {
-    LED_RUN = ~LED_RUN;
     switch (gLcd1602CurSettingCol)
     {
         case 1:
         {   
             if (gLcd1602CurSettingRow == 0)    
             {
+                gSettingDate = 1;
                 gEnvironment.year++;
-                if (gEnvironment.year > 99) gEnvironment.year = 0;
+
+                if (gEnvironment.year > 99) 
+                    gEnvironment.year = 0;
             }
             else if (gLcd1602CurSettingRow == 1)
             {
+                gSettingTime = 1;
                 gEnvironment.hour++;
-                if (gEnvironment.hour > 23) gEnvironment.hour = 0;
+
+                if (gEnvironment.hour > 23) 
+                    gEnvironment.hour = 0;
             }
 
             break;
@@ -147,13 +149,19 @@ void key2_action()
         {  
             if (gLcd1602CurSettingRow == 0)    
             {
+                gSettingDate = 1;
                 gEnvironment.mon++;
-                if (gEnvironment.mon > 12) gEnvironment.mon = 1;
+
+                if (gEnvironment.mon > 12) 
+                    gEnvironment.mon = 1;
             }
             else if (gLcd1602CurSettingRow == 1)
             {
+                gSettingTime = 1;
                 gEnvironment.min++;
-                if (gEnvironment.min > 59) gEnvironment.min = 0;
+
+                if (gEnvironment.min > 59) 
+                    gEnvironment.min = 0;
             }
 
             break;
@@ -162,13 +170,19 @@ void key2_action()
         {
             if (gLcd1602CurSettingRow == 0)    
             {
+                gSettingDate = 1;
                 gEnvironment.day++;
-                if (gEnvironment.day > 31) gEnvironment.day = 1;
+
+                if (gEnvironment.day > 31) 
+                    gEnvironment.day = 1;
             }
             else if (gLcd1602CurSettingRow == 1)
             {
+                gSettingTime = 1;
                 gEnvironment.sec++;
-                if (gEnvironment.sec > 59) gEnvironment.sec = 0;
+
+                if (gEnvironment.sec > 59) 
+                    gEnvironment.sec = 0;
             }
 
             break;

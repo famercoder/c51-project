@@ -3,10 +3,10 @@
         {
             "name": "Target 1",
             "includePath": [
-                "f:\\stm32\\github\\c51\\c51-project\\lcd电子时钟\\lcd1602时钟\\users\\inc",
+                "i:\\keil_prj\\c51\\github\\c51-project\\lcd电子时钟\\lcd1602时钟\\users\\inc",
                 "D:\\Keil_v5\\C51\\INC",
-                "f:\\stm32\\github\\c51\\c51-project\\lcd电子时钟\\lcd1602时钟",
-                "f:\\stm32\\github\\c51\\c51-project\\lcd电子时钟\\lcd1602时钟\\users\\src"
+                "i:\\keil_prj\\c51\\github\\c51-project\\lcd电子时钟\\lcd1602时钟",
+                "i:\\keil_prj\\c51\\github\\c51-project\\lcd电子时钟\\lcd1602时钟\\users\\src"
             ],
             "defines": [
                 "__C51__",
