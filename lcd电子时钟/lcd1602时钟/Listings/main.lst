@@ -1,4 +1,4 @@
-C51 COMPILER V9.60.7.0   MAIN                                                              04/14/2023 23:38:49 PAGE 1   
+C51 COMPILER V9.60.7.0   MAIN                                                              04/18/2023 21:08:12 PAGE 1   
 
 
 C51 COMPILER V9.60.7.0, COMPILATION OF MODULE MAIN
@@ -12,283 +12,314 @@ line level    source
    2          #include "common.h"
    3          
    4          Environment gEnvironment;
-   5          uchar gDispMode = eDisplayMode_dateTime;
+   5          Environment gClockTime;
    6          bit gSettingTime = 0;
    7          bit gSettingDate = 0;
    8          uchar gLcd1602CurSettingRow = 0;
    9          uchar gLcd1602CurSettingCol = 0;
-  10          uchar gLedRunTicket = 0;
-  11          uchar gLcd1602SettingTicket = 0;
+  10          uchar gLcd1602SettingTicket = 0;
+  11          uchar gLedRunTicket = 0;
   12          uchar gSettingMode = eSetting_null;
-  13          
-  14          void init();
-  15          void run();
-  16          void led_run();
-  17          void timer0_init();
-  18          void key1_action();
-  19          void key2_action();
-  20          void key3_action();
-  21          void check_setting_mode();
-  22          
-  23          void main()
-  24          {
-  25   1          init();
-  26   1          while(1)
-  27   1          {
-  28   2              while(!TF0);
-  29   2              run();
-  30   2          }
-  31   1      }
-  32          
-  33          void init()
-  34          {
-  35   1          gEnvironment.year = 23;
-  36   1          gEnvironment.mon = 4;
-  37   1          gEnvironment.day = 10;
-  38   1          gEnvironment.hour = 22;
-  39   1          gEnvironment.min = 40;
-  40   1          gEnvironment.sec = 50;
-  41   1          gEnvironment.temperature[0] = 25,
-  42   1          gEnvironment.temperature[1] = 0,
-  43   1          gEnvironment.humidity[0] = 65,
-  44   1          gEnvironment.humidity[1] = 0,
-  45   1      
-  46   1          timer0_init();
-  47   1          ds1302_init();
-  48   1          lcd1602_init();
-  49   1      
-  50   1          key_register(0, key1_action);
-  51   1          key_register(1, key2_action);
-  52   1          key_register(2, key3_action);
-  53   1      }
-  54          
-C51 COMPILER V9.60.7.0   MAIN                                                              04/14/2023 23:38:49 PAGE 2   
+  13          uchar gDispMode = eDisplayMode_dateTime;
+  14          
+  15          void init();
+  16          void init_data();
+  17          void run();
+  18          void led_run();
+  19          void timer0_init();
+  20          void setDS1302Year();
+  21          void setDS1302Mon();
+  22          void setDS1302Day();
+  23          void setDS1302Hour();
+  24          void setDS1302Min();
+  25          void setDS1302Sec();
+  26          void setClockHour();
+  27          void setClockMin();
+  28          void setClockSec();
+  29          void key1_action();
+  30          void key2_action();
+  31          void key3_action();
+  32          void check_setting_mode();
+  33          
+  34          void main()
+  35          {
+  36   1          init();
+  37   1          while(1)
+  38   1          {
+  39   2              while(!TF0);
+  40   2              run();
+  41   2          }
+  42   1      }
+  43          
+  44          void init()
+  45          {
+  46   1          init_data();
+  47   1          timer0_init();
+  48   1          ds1302_init();
+  49   1          lcd1602_init();
+  50   1      
+  51   1          key_register(0, key1_action);
+  52   1          key_register(1, key2_action);
+  53   1          key_register(2, key3_action);
+  54   1      }
+C51 COMPILER V9.60.7.0   MAIN                                                              04/18/2023 21:08:12 PAGE 2   
 
-  55          void led_run()
-  56          {
-  57   1          gLedRunTicket++;
-  58   1          if (gLedRunTicket == 100) //500ms
-  59   1          {
-  60   2              gLedRunTicket = 0;
-  61   2              LED_RUN = ~LED_RUN;
-  62   2          }
-  63   1      }
-  64          
-  65          void run()
-  66          {
-  67   1          key_run();
-  68   1          led_run();
-  69   1          check_setting_mode();
-  70   1      
-  71   1          if (gSettingMode == eSetting_null)
-  72   1          {
-  73   2              gLcd1602SettingTicket = 0;
-  74   2              ds1302_read_time(&gEnvironment);
-  75   2              dht11_read_dat(&gEnvironment);
-  76   2              lcd1602_display(gDispMode, gEnvironment);
+  55          
+  56          void init_data()
+  57          {
+  58   1          gEnvironment.year = 23;
+  59   1          gEnvironment.mon = 4;
+  60   1          gEnvironment.day = 10;
+  61   1          gEnvironment.hour = 22;
+  62   1          gEnvironment.min = 40;
+  63   1          gEnvironment.sec = 50;
+  64   1          gEnvironment.temperature[0] = 25;
+  65   1          gEnvironment.temperature[1] = 0;
+  66   1          gEnvironment.humidity[0] = 65;
+  67   1          gEnvironment.humidity[1] = 0;
+  68   1      }
+  69          
+  70          void led_run()
+  71          {
+  72   1          gLedRunTicket++;
+  73   1          if (gLedRunTicket == 100) //500ms
+  74   1          {
+  75   2              gLedRunTicket = 0;
+  76   2              LED_RUN = ~LED_RUN;
   77   2          }
-  78   1          else
-  79   1          {
-  80   2              gLcd1602SettingTicket++;
-  81   2              if (gLcd1602SettingTicket < 50) 
-  82   2                  lcd1602_display_setting(gEnvironment, gSettingMode);
-  83   2              else if (gLcd1602SettingTicket >= 50 && gLcd1602SettingTicket < 100) 
-  84   2                  lcd1602_display(gDispMode, gEnvironment);
-  85   2              else
-  86   2                  gLcd1602SettingTicket = 0;
-  87   2          }
-  88   1      }
-  89          
-  90          void timer0_init()
-  91          {
-  92   1          TMOD = 0x01;
-  93   1          TH0 = (65536 - 5000) / 256;
-  94   1          TL0 = (65536 - 5000) % 256;
-  95   1          TF0 = 0;
-  96   1          TR0 = 1;
-  97   1          ET0 = 1;
-  98   1          EA = 1;
-  99   1      }
- 100          
- 101          void timer0() interrupt 1
- 102          {
- 103   1          TH0 = (65536 - 5000) / 256;
- 104   1          TL0 = (65536 - 5000) % 256;
- 105   1      }
- 106          
- 107          void key1_action()
- 108          {
- 109   1          if (gDispMode != eDisplayMode_dateTime) 
- 110   1              return;
- 111   1          
- 112   1          gLcd1602CurSettingCol++;
- 113   1          if (gLcd1602CurSettingCol > 3)
- 114   1          {
- 115   2              gLcd1602CurSettingCol = 1;
- 116   2              gLcd1602CurSettingRow++;
-C51 COMPILER V9.60.7.0   MAIN                                                              04/14/2023 23:38:49 PAGE 3   
+  78   1      }
+  79          
+  80          void run()
+  81          {
+  82   1          key_run();
+  83   1          led_run();
+  84   1          check_setting_mode();
+  85   1      
+  86   1          if (gSettingMode == eSetting_null)
+  87   1          {
+  88   2              gLcd1602SettingTicket = 0;
+  89   2              ds1302_read_time(&gEnvironment);
+  90   2              dht11_read_dat(&gEnvironment);
+  91   2              lcd1602_display(gDispMode, gEnvironment);
+  92   2          }
+  93   1          else
+  94   1          {
+  95   2              gLcd1602SettingTicket++;
+  96   2              if (gLcd1602SettingTicket < 50) 
+  97   2                  lcd1602_display_setting(gEnvironment, gSettingMode);
+  98   2              else if (gLcd1602SettingTicket >= 50 && gLcd1602SettingTicket < 100) 
+  99   2                  lcd1602_display(gDispMode, gEnvironment);
+ 100   2              else
+ 101   2                  gLcd1602SettingTicket = 0;
+ 102   2          }
+ 103   1      }
+ 104          
+ 105          void timer0_init()
+ 106          {
+ 107   1          TMOD = 0x01;
+ 108   1          TH0 = (65536 - 5000) / 256;
+ 109   1          TL0 = (65536 - 5000) % 256;
+ 110   1          TF0 = 0;
+ 111   1          TR0 = 1;
+ 112   1          ET0 = 1;
+ 113   1          EA = 1;
+ 114   1      }
+ 115          
+ 116          void timer0() interrupt 1
+C51 COMPILER V9.60.7.0   MAIN                                                              04/18/2023 21:08:12 PAGE 3   
 
- 117   2      
- 118   2              if (gLcd1602CurSettingRow > 1)
- 119   2                  gLcd1602CurSettingRow = 0;
- 120   2          }
- 121   1      }
- 122          
- 123          void key2_action()
- 124          {
- 125   1          switch (gLcd1602CurSettingCol)
- 126   1          {
- 127   2              case 1:
- 128   2              {   
- 129   3                  if (gLcd1602CurSettingRow == 0)    
- 130   3                  {
- 131   4                      gSettingDate = 1;
- 132   4                      gEnvironment.year++;
- 133   4      
- 134   4                      if (gEnvironment.year > 99) 
- 135   4                          gEnvironment.year = 0;
- 136   4                  }
- 137   3                  else if (gLcd1602CurSettingRow == 1)
- 138   3                  {
- 139   4                      gSettingTime = 1;
- 140   4                      gEnvironment.hour++;
- 141   4      
- 142   4                      if (gEnvironment.hour > 23) 
- 143   4                          gEnvironment.hour = 0;
- 144   4                  }
- 145   3      
- 146   3                  break;
- 147   3              }
- 148   2              case 2:
- 149   2              {  
- 150   3                  if (gLcd1602CurSettingRow == 0)    
- 151   3                  {
- 152   4                      gSettingDate = 1;
- 153   4                      gEnvironment.mon++;
- 154   4      
- 155   4                      if (gEnvironment.mon > 12) 
- 156   4                          gEnvironment.mon = 1;
- 157   4                  }
- 158   3                  else if (gLcd1602CurSettingRow == 1)
- 159   3                  {
- 160   4                      gSettingTime = 1;
- 161   4                      gEnvironment.min++;
- 162   4      
- 163   4                      if (gEnvironment.min > 59) 
- 164   4                          gEnvironment.min = 0;
- 165   4                  }
- 166   3      
- 167   3                  break;
- 168   3              }
- 169   2              case 3:
- 170   2              {
- 171   3                  if (gLcd1602CurSettingRow == 0)    
- 172   3                  {
- 173   4                      gSettingDate = 1;
- 174   4                      gEnvironment.day++;
- 175   4      
- 176   4                      if (gEnvironment.day > 31) 
- 177   4                          gEnvironment.day = 1;
- 178   4                  }
-C51 COMPILER V9.60.7.0   MAIN                                                              04/14/2023 23:38:49 PAGE 4   
+ 117          {
+ 118   1          TH0 = (65536 - 5000) / 256;
+ 119   1          TL0 = (65536 - 5000) % 256;
+ 120   1      }
+ 121          
+ 122          void setDS1302Year()
+ 123          {
+ 124   1          gSettingDate = 1;
+ 125   1          gEnvironment.year++;
+ 126   1      
+ 127   1          if (gEnvironment.year > 99) 
+ 128   1              gEnvironment.year = 0;
+ 129   1      }
+ 130          
+ 131          void setDS1302Mon()
+ 132          {
+ 133   1          gSettingDate = 1;
+ 134   1          gEnvironment.mon++;
+ 135   1      
+ 136   1          if (gEnvironment.mon > 12)
+ 137   1              gEnvironment.mon = 1;
+ 138   1      }
+ 139          
+ 140          void setDS1302Day()
+ 141          {
+ 142   1          gSettingDate = 1;
+ 143   1          gEnvironment.day++;
+ 144   1      
+ 145   1          if (gEnvironment.day > 31)
+ 146   1              gEnvironment.day = 1;
+ 147   1      }
+ 148          
+ 149          void setDS1302Hour()
+ 150          {
+ 151   1          gSettingTime = 1;
+ 152   1          gEnvironment.hour++;
+ 153   1      
+ 154   1          if (gEnvironment.hour > 23)
+ 155   1              gEnvironment.hour = 0;
+ 156   1      }
+ 157          
+ 158          void setDS1302Min()
+ 159          {
+ 160   1          gSettingTime = 1;
+ 161   1          gEnvironment.min++;
+ 162   1      
+ 163   1          if (gEnvironment.min > 59)
+ 164   1              gEnvironment.min = 0;
+ 165   1      }
+ 166          
+ 167          void setDS1302Sec()
+ 168          {
+ 169   1          gSettingTime = 1;
+ 170   1          gEnvironment.sec++;
+ 171   1      
+ 172   1          if (gEnvironment.sec > 59)
+ 173   1              gEnvironment.sec = 0;
+ 174   1      }
+ 175          
+ 176          void setClockHour()
+ 177          {
+ 178   1          gSettingTime = 1;
+C51 COMPILER V9.60.7.0   MAIN                                                              04/18/2023 21:08:12 PAGE 4   
 
- 179   3                  else if (gLcd1602CurSettingRow == 1)
- 180   3                  {
- 181   4                      gSettingTime = 1;
- 182   4                      gEnvironment.sec++;
- 183   4      
- 184   4                      if (gEnvironment.sec > 59) 
- 185   4                          gEnvironment.sec = 0;
- 186   4                  }
- 187   3      
- 188   3                  break;
- 189   3              }      
- 190   2          }
- 191   1      }
- 192          
- 193          void key3_action()
- 194          {
- 195   1          gDispMode++;
- 196   1          if (gDispMode >= eDisplayMode_max) 
- 197   1              gDispMode = eDisplayMode_dateTime;
+ 179   1          gClockTime.hour++;
+ 180   1      
+ 181   1          if (gClockTime.hour > 23)
+ 182   1              gClockTime.hour = 0;
+ 183   1      }
+ 184          
+ 185          void setClockMin()
+ 186          {
+ 187   1          gSettingTime = 1;
+ 188   1          gClockTime.min++;
+ 189   1      
+ 190   1          if (gClockTime.min > 59)
+ 191   1              gClockTime.min = 0;
+ 192   1      }
+ 193          
+ 194          void setClockSec()
+ 195          {
+ 196   1          gSettingTime = 1;
+ 197   1          gClockTime.sec++;
  198   1      
- 199   1          if (gDispMode == eDisplayMode_tpHumi)
- 200   1          {
- 201   2              if (gSettingTime)
- 202   2              {
- 203   3                  ds1302_set_time(eDs1302_Set_hms, &gEnvironment);
- 204   3                  gSettingTime = 0;
- 205   3              }
- 206   2      
- 207   2              if (gSettingDate)
- 208   2              {
- 209   3                  ds1302_set_time(eDs1302_Set_ymd, &gEnvironment);
- 210   3                  gSettingDate = 0;
- 211   3              }
- 212   2          }
- 213   1      
- 214   1          gLcd1602CurSettingRow = 0;
- 215   1          gLcd1602CurSettingCol = 0;
- 216   1      }
- 217          
- 218          void check_setting_mode()
- 219          {
- 220   1          if (gLcd1602CurSettingRow == 0) 
- 221   1          {
- 222   2              if (gLcd1602CurSettingCol == 1)
- 223   2              {
- 224   3                  gSettingMode = eSetting_year;
- 225   3                  return;
- 226   3              }
- 227   2      
- 228   2              if (gLcd1602CurSettingCol == 2)
- 229   2              {
- 230   3                  gSettingMode = eSetting_mon;
+ 199   1          if (gClockTime.sec > 59)
+ 200   1              gClockTime.sec = 0;
+ 201   1      }
+ 202          
+ 203          void key1_action()
+ 204          {
+ 205   1          if (gDispMode != eDisplayMode_dateTime) 
+ 206   1              return;
+ 207   1          
+ 208   1          gLcd1602CurSettingCol++;
+ 209   1          if (gLcd1602CurSettingCol > 3)
+ 210   1          {
+ 211   2              gLcd1602CurSettingCol = 1;
+ 212   2              gLcd1602CurSettingRow++;
+ 213   2      
+ 214   2              if (gLcd1602CurSettingRow > 1)
+ 215   2                  gLcd1602CurSettingRow = 0;
+ 216   2          }
+ 217   1      }
+ 218          
+ 219          void key2_action()
+ 220          {
+ 221   1          switch (gDispMode)
+ 222   1          {
+ 223   2              case eDisplayMode_dateTime: 
+ 224   2              {
+ 225   3                  if (gLcd1602CurSettingRow == 0 && gLcd1602CurSettingCol == 1) setDS1302Year();
+ 226   3                  if (gLcd1602CurSettingRow == 0 && gLcd1602CurSettingCol == 2) setDS1302Mon(); 
+ 227   3                  if (gLcd1602CurSettingRow == 0 && gLcd1602CurSettingCol == 3) setDS1302Day();
+ 228   3                  if (gLcd1602CurSettingRow == 1 && gLcd1602CurSettingCol == 1) setDS1302Hour();
+ 229   3                  if (gLcd1602CurSettingRow == 1 && gLcd1602CurSettingCol == 2) setDS1302Min();
+ 230   3                  if (gLcd1602CurSettingRow == 1 && gLcd1602CurSettingCol == 3) setDS1302Sec();   
  231   3                  return;
  232   3              }
- 233   2      
- 234   2              if (gLcd1602CurSettingCol == 3)
- 235   2              {
- 236   3                  gSettingMode = eSetting_day;
- 237   3                  return;
- 238   3              }
- 239   2          }
- 240   1      
-C51 COMPILER V9.60.7.0   MAIN                                                              04/14/2023 23:38:49 PAGE 5   
+ 233   2              case eDisplayMode_SettingClock: 
+ 234   2              {
+ 235   3                  if (gLcd1602CurSettingRow == 1 && gLcd1602CurSettingCol == 1) setClockHour();
+ 236   3                  if (gLcd1602CurSettingRow == 1 && gLcd1602CurSettingCol == 2) setClockMin();
+ 237   3                  if (gLcd1602CurSettingRow == 1 && gLcd1602CurSettingCol == 3) setClockSec();
+ 238   3                  return; 
+ 239   3              } 
+ 240   2          }
+C51 COMPILER V9.60.7.0   MAIN                                                              04/18/2023 21:08:12 PAGE 5   
 
- 241   1          if (gLcd1602CurSettingRow == 1) 
- 242   1          {
- 243   2              if (gLcd1602CurSettingCol == 1)
- 244   2              {
- 245   3                  gSettingMode = eSetting_hour;
- 246   3                  return;
- 247   3              }
- 248   2      
- 249   2              if (gLcd1602CurSettingCol == 2)
- 250   2              {
- 251   3                  gSettingMode = eSetting_min;
- 252   3                  return;
- 253   3              }
- 254   2      
- 255   2              if (gLcd1602CurSettingCol == 3)
- 256   2              {
- 257   3                  gSettingMode = eSetting_sec;
- 258   3                  return;
- 259   3              }
- 260   2          } 
- 261   1      
- 262   1          gSettingMode = eSetting_null;
- 263   1      }
+ 241   1      }
+ 242          
+ 243          void key3_action()
+ 244          {
+ 245   1          gDispMode++;
+ 246   1          if (gDispMode >= eDisplayMode_max) 
+ 247   1              gDispMode = eDisplayMode_dateTime;
+ 248   1      
+ 249   1          if (gDispMode == eDisplayMode_tpHumi)
+ 250   1          {
+ 251   2              if (gSettingTime)
+ 252   2              {
+ 253   3                  ds1302_set_time(eDs1302_Set_hms, &gEnvironment);
+ 254   3                  gSettingTime = 0;
+ 255   3              }
+ 256   2      
+ 257   2              if (gSettingDate)
+ 258   2              {
+ 259   3                  ds1302_set_time(eDs1302_Set_ymd, &gEnvironment);
+ 260   3                  gSettingDate = 0;
+ 261   3              }
+ 262   2          }
+ 263   1      
+ 264   1          gLcd1602CurSettingRow = 0;
+ 265   1          gLcd1602CurSettingCol = 0;
+ 266   1      }
+ 267          
+ 268          void check_setting_mode()
+ 269          {
+ 270   1          switch (gDispMode) 
+ 271   1          {
+ 272   2              case eDisplayMode_dateTime:
+ 273   2              {
+ 274   3                  if (gLcd1602CurSettingRow == 0 && gLcd1602CurSettingCol == 1) gSettingMode = eSetting_year;
+ 275   3                  if (gLcd1602CurSettingRow == 0 && gLcd1602CurSettingCol == 2) gSettingMode = eSetting_mon; 
+ 276   3                  if (gLcd1602CurSettingRow == 0 && gLcd1602CurSettingCol == 3) gSettingMode = eSetting_day;
+ 277   3                  if (gLcd1602CurSettingRow == 1 && gLcd1602CurSettingCol == 1) gSettingMode = eSetting_hour;
+ 278   3                  if (gLcd1602CurSettingRow == 1 && gLcd1602CurSettingCol == 2) gSettingMode = eSetting_min;
+ 279   3                  if (gLcd1602CurSettingRow == 1 && gLcd1602CurSettingCol == 3) gSettingMode = eSetting_sec;
+ 280   3                  return;
+ 281   3              }
+ 282   2              case eDisplayMode_SettingClock:
+ 283   2              {
+ 284   3                  if (gLcd1602CurSettingRow == 1 && gLcd1602CurSettingCol == 1) gSettingMode = eSetting_hour;
+ 285   3                  if (gLcd1602CurSettingRow == 1 && gLcd1602CurSettingCol == 2) gSettingMode = eSetting_min;
+ 286   3                  if (gLcd1602CurSettingRow == 1 && gLcd1602CurSettingCol == 3) gSettingMode = eSetting_sec;
+ 287   3                  return; 
+ 288   3              }       
+ 289   2          }
+ 290   1      
+ 291   1          gSettingMode = eSetting_null;
+ 292   1      }
 
 
 MODULE INFORMATION:   STATIC OVERLAYABLE
-   CODE SIZE        =    513    ----
+   CODE SIZE        =    710    ----
    CONSTANT SIZE    =   ----    ----
    XDATA SIZE       =   ----    ----
    PDATA SIZE       =   ----    ----
-   DATA SIZE        =     16    ----
+   DATA SIZE        =     26    ----
    IDATA SIZE       =   ----    ----
    BIT SIZE         =      2    ----
+C51 COMPILER V9.60.7.0   MAIN                                                              04/18/2023 21:08:12 PAGE 6   
+
 END OF MODULE INFORMATION.
 
 

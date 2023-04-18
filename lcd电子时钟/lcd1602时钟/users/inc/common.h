@@ -22,9 +22,16 @@ typedef struct {
     uchar humidity[2];
 }Environment;
 
+typedef struct {
+    uchar hour;
+    uchar min;
+    uchar sec;
+} Clock;
+
 enum DisplayMode {
     eDisplayMode_dateTime,
     eDisplayMode_tpHumi,
+    eDisplayMode_SettingClock,
     eDisplayMode_max,
 };
 
