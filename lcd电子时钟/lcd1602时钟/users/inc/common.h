@@ -31,7 +31,7 @@ typedef struct {
 enum DisplayMode {
     eDisplayMode_dateTime,
     eDisplayMode_tpHumi,
-    eDisplayMode_SettingClock,
+    eDisplayMode_alarm_clock,
     eDisplayMode_max,
 };
 

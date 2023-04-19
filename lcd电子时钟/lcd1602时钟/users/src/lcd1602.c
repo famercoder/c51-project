@@ -198,10 +198,10 @@ void lcd1602_display(enum DisplayMode dispMode, Environment information)
             lcd1602_display_humidity(1, 0, information);
             break;
         }
-        case eDisplayMode_SettingClock:
+        case eDisplayMode_alarm_clock:
         {
             lcd1602_setcursor(0, 0);
-            lcd1602_message("Setting Clock:");
+            lcd1602_message("Alarm Clock:");
             lcd1602_display_time(1, 0, information);
             break;
         }

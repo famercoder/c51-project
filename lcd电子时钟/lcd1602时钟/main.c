@@ -2,13 +2,15 @@
 #include "common.h"
 
 Environment gEnvironment;
-Environment gClockTime;
+Environment gAlarmClockTime;
 bit gSettingTime = 0;
 bit gSettingDate = 0;
+bit gAlarmClockTimeUp = 0;
 uchar gLcd1602CurSettingRow = 0;
 uchar gLcd1602CurSettingCol = 0;
 uchar gLcd1602SettingTicket = 0;
 uchar gLedRunTicket = 0;
+uchar gLedRunTime = 0;
 uchar gSettingMode = eSetting_null;
 uchar gDispMode = eDisplayMode_dateTime;
 
@@ -23,13 +25,14 @@ void setDS1302Day();
 void setDS1302Hour();
 void setDS1302Min();
 void setDS1302Sec();
-void setClockHour();
-void setClockMin();
-void setClockSec();
+void setAlarmClockHour();
+void setAlarmClockMin();
+void setAlarmClockSec();
 void key1_action();
 void key2_action();
 void key3_action();
 void check_setting_mode();
+void check_alarm_clock();
 
 void main()
 {
@@ -65,15 +68,31 @@ void init_data()
     gEnvironment.temperature[1] = 0;
     gEnvironment.humidity[0] = 65;
     gEnvironment.humidity[1] = 0;
+
+    gAlarmClockTime.hour = 13;
+    gAlarmClockTime.min = 25;
+    gAlarmClockTime.sec = 30;
 }
 
 void led_run()
 {
-    gLedRunTicket++;
-    if (gLedRunTicket == 100) //500ms
+    if (gAlarmClockTimeUp)
     {
-        gLedRunTicket = 0;
-        LED_RUN = ~LED_RUN;
+        gLedRunTime++;
+        gLedRunTicket++;
+
+        if (gLedRunTicket == 100) //500ms
+        {
+            gLedRunTicket = 0;
+            LED_RUN = ~LED_RUN;
+        }
+
+        if (gLedRunTime == 1200)
+        {
+            gAlarmClockTimeUp = 0;
+            gLedRunTime = 0;
+            gLedRunTicket = 0;
+        }
     }
 }
 
@@ -82,21 +101,36 @@ void run()
     key_run();
     led_run();
     check_setting_mode();
+    check_alarm_clock();
 
     if (gSettingMode == eSetting_null)
     {
         gLcd1602SettingTicket = 0;
         ds1302_read_time(&gEnvironment);
         dht11_read_dat(&gEnvironment);
-        lcd1602_display(gDispMode, gEnvironment);
+
+        if (gDispMode == eDisplayMode_alarm_clock) 
+            lcd1602_display(gDispMode, gAlarmClockTime);
+        else 
+            lcd1602_display(gDispMode, gEnvironment);
     }
     else
     {
         gLcd1602SettingTicket++;
         if (gLcd1602SettingTicket < 50) 
-            lcd1602_display_setting(gEnvironment, gSettingMode);
+        {
+            if (gDispMode == eDisplayMode_alarm_clock)
+                lcd1602_display_setting(gAlarmClockTime, gSettingMode);
+            else
+                lcd1602_display_setting(gEnvironment, gSettingMode);
+        }   
         else if (gLcd1602SettingTicket >= 50 && gLcd1602SettingTicket < 100) 
-            lcd1602_display(gDispMode, gEnvironment);
+        {
+            if (gDispMode == eDisplayMode_alarm_clock) 
+                lcd1602_display(gDispMode, gAlarmClockTime);
+            else 
+                lcd1602_display(gDispMode, gEnvironment);
+            }
         else
             gLcd1602SettingTicket = 0;
     }
@@ -173,46 +207,55 @@ void setDS1302Sec()
         gEnvironment.sec = 0;
 }
 
-void setClockHour()
+void setAlarmClockHour()
 {
-    gSettingTime = 1;
-    gClockTime.hour++;
-
-    if (gClockTime.hour > 23)
-        gClockTime.hour = 0;
+    gAlarmClockTime.hour++;
+    if (gAlarmClockTime.hour > 23)
+        gAlarmClockTime.hour = 0;
 }
 
-void setClockMin()
+void setAlarmClockMin()
 {
-    gSettingTime = 1;
-    gClockTime.min++;
-
-    if (gClockTime.min > 59)
-        gClockTime.min = 0;
+    gAlarmClockTime.min++;
+    if (gAlarmClockTime.min > 59)
+        gAlarmClockTime.min = 0;
 }
 
-void setClockSec()
+void setAlarmClockSec()
 {
-    gSettingTime = 1;
-    gClockTime.sec++;
-
-    if (gClockTime.sec > 59)
-        gClockTime.sec = 0;
+    gAlarmClockTime.sec++;
+    if (gAlarmClockTime.sec > 59)
+        gAlarmClockTime.sec = 0;
 }
 
 void key1_action()
 {
-    if (gDispMode != eDisplayMode_dateTime) 
-        return;
-    
-    gLcd1602CurSettingCol++;
-    if (gLcd1602CurSettingCol > 3)
+    switch (gDispMode)
     {
-        gLcd1602CurSettingCol = 1;
-        gLcd1602CurSettingRow++;
+        case eDisplayMode_dateTime:
+        {
+            gLcd1602CurSettingCol++;
+            if (gLcd1602CurSettingCol > 3)
+            {
+                gLcd1602CurSettingCol = 1;
+                gLcd1602CurSettingRow++;
 
-        if (gLcd1602CurSettingRow > 1)
-            gLcd1602CurSettingRow = 0;
+                if (gLcd1602CurSettingRow > 1)
+                    gLcd1602CurSettingRow = 0;
+            } 
+
+            break;       
+        }
+        case eDisplayMode_alarm_clock:
+        {
+            gLcd1602CurSettingRow = 1;
+            gLcd1602CurSettingCol++;
+
+            if (gLcd1602CurSettingCol > 3)
+                gLcd1602CurSettingCol = 1;
+
+            break;
+        }
     }
 }
 
@@ -230,11 +273,11 @@ void key2_action()
             if (gLcd1602CurSettingRow == 1 && gLcd1602CurSettingCol == 3) setDS1302Sec();   
             return;
         }
-        case eDisplayMode_SettingClock: 
+        case eDisplayMode_alarm_clock: 
         {
-            if (gLcd1602CurSettingRow == 1 && gLcd1602CurSettingCol == 1) setClockHour();
-            if (gLcd1602CurSettingRow == 1 && gLcd1602CurSettingCol == 2) setClockMin();
-            if (gLcd1602CurSettingRow == 1 && gLcd1602CurSettingCol == 3) setClockSec();
+            if (gLcd1602CurSettingRow == 1 && gLcd1602CurSettingCol == 1) setAlarmClockHour();
+            if (gLcd1602CurSettingRow == 1 && gLcd1602CurSettingCol == 2) setAlarmClockMin();
+            if (gLcd1602CurSettingRow == 1 && gLcd1602CurSettingCol == 3) setAlarmClockSec();
             return; 
         } 
     }
@@ -267,6 +310,7 @@ void key3_action()
 
 void check_setting_mode()
 {
+    gSettingMode = eSetting_null;
     switch (gDispMode) 
     {
         case eDisplayMode_dateTime:
@@ -279,7 +323,7 @@ void check_setting_mode()
             if (gLcd1602CurSettingRow == 1 && gLcd1602CurSettingCol == 3) gSettingMode = eSetting_sec;
             return;
         }
-        case eDisplayMode_SettingClock:
+        case eDisplayMode_alarm_clock:
         {
             if (gLcd1602CurSettingRow == 1 && gLcd1602CurSettingCol == 1) gSettingMode = eSetting_hour;
             if (gLcd1602CurSettingRow == 1 && gLcd1602CurSettingCol == 2) gSettingMode = eSetting_min;
@@ -287,6 +331,16 @@ void check_setting_mode()
             return; 
         }       
     }
+}
 
-    gSettingMode = eSetting_null;
+void check_alarm_clock()
+{
+    if (gEnvironment.hour == gAlarmClockTime.hour && 
+    gEnvironment.min == gAlarmClockTime.min && 
+    gEnvironment.sec == gAlarmClockTime.sec)
+    {
+        gAlarmClockTimeUp = 1;
+        gLedRunTicket = 0;
+        gLedRunTime = 0;
+    }
 }
