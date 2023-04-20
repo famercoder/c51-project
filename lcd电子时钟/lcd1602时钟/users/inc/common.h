@@ -20,13 +20,8 @@ typedef struct {
     uchar sec;
     uchar temperature[2];
     uchar humidity[2];
+    uchar setting_mode;
 }Environment;
-
-typedef struct {
-    uchar hour;
-    uchar min;
-    uchar sec;
-} Clock;
 
 enum DisplayMode {
     eDisplayMode_dateTime,
@@ -125,12 +120,11 @@ void lcd1602_clear();
 void lcd1602_pulseenable();
 bit  lcd1602_busy();
 
-void lcd1602_display_time(uchar row, uchar col, Environment information);
-void lcd1602_display_date(uchar row, uchar col, Environment information);
-void lcd1602_display_temperature(uchar row, uchar col, Environment information);
-void lcd1602_display_humidity(uchar row, uchar col, Environment information);
-void lcd1602_display(enum DisplayMode dispMode, Environment information);
+void lcd1602_display_time(uchar row, uchar col, Environment* information);
+void lcd1602_display_date(uchar row, uchar col, Environment* information);
+void lcd1602_display_temperature(uchar row, uchar col, Environment* information);
+void lcd1602_display_humidity(uchar row, uchar col, Environment* information);
+void lcd1602_display(enum DisplayMode dispMode, Environment* information);
 void lcd1602_format_display(uchar row, uchar col, uchar displayValues[], char message[], uchar messageLen);
-void lcd1602_display_setting(Environment information, enum SettingMode settingMode);
 
 #endif

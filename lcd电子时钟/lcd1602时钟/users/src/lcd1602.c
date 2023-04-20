@@ -84,31 +84,31 @@ bit  lcd1602_busy()
     return result;
 }
 
-void lcd1602_display_time(uchar row, uchar col, Environment information)
+void lcd1602_display_time(uchar row, uchar col, Environment* information)
 {
     uchar displayValues[6] = {0};
     char message[] = "Time:xx:xx:xx";
 
-    displayValues[0] = information.hour / 10;
-    displayValues[1] = information.hour % 10;
-    displayValues[2] = information.min / 10;
-    displayValues[3] = information.min % 10;
-    displayValues[4] = information.sec / 10;
-    displayValues[5] = information.sec % 10;
+    displayValues[0] = information->hour / 10;
+    displayValues[1] = information->hour % 10;
+    displayValues[2] = information->min / 10;
+    displayValues[3] = information->min % 10;
+    displayValues[4] = information->sec / 10;
+    displayValues[5] = information->sec % 10;
 
-    if (information.hour == SETTING_DAT) 
+    if (information->setting_mode == eSetting_hour) 
     {
         message[5] = 'n';
         message[6] = 'n';
     }
 
-    if (information.min == SETTING_DAT) 
+    if (information->setting_mode == eSetting_min) 
     {
         message[8] = 'n';
         message[9] = 'n';
     }
 
-    if (information.sec == SETTING_DAT) 
+    if (information->setting_mode == eSetting_sec) 
     {
         message[11] = 'n';
         message[12] = 'n';
@@ -117,31 +117,31 @@ void lcd1602_display_time(uchar row, uchar col, Environment information)
     lcd1602_format_display(row, col, displayValues, message, sizeof(message) / sizeof(char));
 }
 
-void lcd1602_display_date(uchar row, uchar col, Environment information)
+void lcd1602_display_date(uchar row, uchar col, Environment* information)
 {
     uchar displayValues[6] = {0};
     char message[] = "Date:xx/xx/xx";
 
-    displayValues[0] = information.year / 10;
-    displayValues[1] = information.year % 10;
-    displayValues[2] = information.mon / 10;
-    displayValues[3] = information.mon % 10;
-    displayValues[4] = information.day / 10;
-    displayValues[5] = information.day % 10;
+    displayValues[0] = information->year / 10;
+    displayValues[1] = information->year % 10;
+    displayValues[2] = information->mon / 10;
+    displayValues[3] = information->mon % 10;
+    displayValues[4] = information->day / 10;
+    displayValues[5] = information->day % 10;
 
-    if (information.year == SETTING_DAT)
+    if (information->setting_mode == eSetting_year)
     {
         message[5] = 'n';
         message[6] = 'n';
     }
 
-    if (information.mon == SETTING_DAT)
+    if (information->setting_mode == eSetting_mon)
     {
         message[8] = 'n';
         message[9] = 'n';
     }
 
-    if (information.day == SETTING_DAT)
+    if (information->setting_mode == eSetting_day)
     {
         message[11] = 'n';
         message[12] = 'n';
@@ -150,31 +150,31 @@ void lcd1602_display_date(uchar row, uchar col, Environment information)
     lcd1602_format_display(row, col, displayValues, message, sizeof(message) / sizeof(char)); 
 }
 
-void lcd1602_display_temperature(uchar row, uchar col, Environment information)
+void lcd1602_display_temperature(uchar row, uchar col, Environment* information)
 {
     uchar displayValues[4] = {0};
     char message[] = "Temp:xx.xx C";
 
-    displayValues[0] = information.temperature[0] / 10;
-    displayValues[1] = information.temperature[0] % 10;
-    displayValues[2] = information.temperature[1] / 10;
-    displayValues[3] = information.temperature[1] % 10;
+    displayValues[0] = information->temperature[0] / 10;
+    displayValues[1] = information->temperature[0] % 10;
+    displayValues[2] = information->temperature[1] / 10;
+    displayValues[3] = information->temperature[1] % 10;
     lcd1602_format_display(row, col, displayValues, message, sizeof(message) / sizeof(char)); 
 }
 
-void lcd1602_display_humidity(uchar row, uchar col, Environment information)
+void lcd1602_display_humidity(uchar row, uchar col, Environment* information)
 {
     uchar displayValues[4] = {0};
     char message[] = "Humi:xx.xx %";
 
-    displayValues[0] = information.humidity[0] / 10;
-    displayValues[1] = information.humidity[0] % 10;
-    displayValues[2] = information.humidity[1] / 10;
-    displayValues[3] = information.humidity[1] % 10;
+    displayValues[0] = information->humidity[0] / 10;
+    displayValues[1] = information->humidity[0] % 10;
+    displayValues[2] = information->humidity[1] / 10;
+    displayValues[3] = information->humidity[1] % 10;
     lcd1602_format_display(row, col, displayValues, message, sizeof(message) / sizeof(char));
 }
 
-void lcd1602_display(enum DisplayMode dispMode, Environment information)
+void lcd1602_display(enum DisplayMode dispMode, Environment* information)
 {
     static enum DisplayMode lastDispMode = eDisplayMode_dateTime;
     if (lastDispMode != dispMode)
@@ -212,31 +212,6 @@ void lcd1602_display(enum DisplayMode dispMode, Environment information)
             break;
         }
     }
-}
-
-void lcd1602_display_setting(Environment information, enum SettingMode settingMode)
-{
-    switch (settingMode)
-    {
-        case eSetting_year: information.year = SETTING_DAT; break;
-        case eSetting_mon:  information.mon = SETTING_DAT;  break;
-        case eSetting_day:  information.day = SETTING_DAT;  break;  
-        case eSetting_hour: information.hour = SETTING_DAT; break;   
-        case eSetting_min:  information.min = SETTING_DAT;  break;
-        case eSetting_sec:  information.sec = SETTING_DAT;  break;
-    }
-
-    if (settingMode == eSetting_year || settingMode == eSetting_mon || settingMode == eSetting_day)
-    {
-        lcd1602_display_date(0, 0, information);
-        return;
-    }
-
-    if (settingMode == eSetting_hour || settingMode == eSetting_min || settingMode == eSetting_sec)
-    {
-        lcd1602_display_time(1, 0, information);
-        return;
-    }     
 }
 
 void lcd1602_format_display(uchar row, uchar col, uchar displayValues[], char message[], uchar messageLen)
